@@ -37,6 +37,9 @@ if ( ! defined( 'WPINC' ) ) {
  */
 define( 'USC_UTILITIES_VERSION', '1.0.0' );
 
+if (!defined('USC_UTIL_TEXTDOMAIN'))
+	define('USC_UTIL_TEXTDOMAIN', 'usc-utilities');
+
 /**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-usc-utilities-activator.php

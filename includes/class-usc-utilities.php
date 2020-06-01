@@ -57,6 +57,9 @@ class Usc_Utilities {
 	 */
 	protected $version;
 
+	protected $maps_post_type ;
+
+
 	/**
 	 * Define the core functionality of the plugin.
 	 *
@@ -79,6 +82,7 @@ class Usc_Utilities {
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
 		$this->register_shortcodes();
+		$this->register_post_types();
 
 	}
 
@@ -127,7 +131,18 @@ class Usc_Utilities {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-usc-utilities-shortcodes.php';
 
 
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'model/class-maps-post-type.php';
+
+		// wp-content/plugins/usc-utilities/includes/classusc-utili-ties-loader.php
+
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-usc-utilities-meta-box.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-usc-utilities-maps-meta-box.php';
+
+
+
 		$this->loader = new Usc_Utilities_Loader();
+
+		$this->maps_post_type = new Maps_Post_Type();
 
 
 
@@ -163,6 +178,22 @@ class Usc_Utilities {
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+
+
+		switch ( $this->get_current_post_type() ) {
+			case 'maps':
+			case 'edit-maps':
+				$maps_meta_box = new Usc_Utilities_Maps_Meta_Box();
+				$this->loader->add_action( 'add_meta_boxes', $maps_meta_box, 'meta_box_init' );
+				$this->loader->add_action( 'admin_menu', $maps_meta_box, 'remove_meta_boxes' );
+				$this->loader->add_action( 'save_post', $maps_meta_box, 'post_meta_save' );
+				break;
+
+
+			default:
+				break;
+		}
+
 
 	}
 
@@ -228,6 +259,29 @@ class Usc_Utilities {
 	private function register_shortcodes() {
 		$shortcodes = new Usc_Utilities_Shortcodes();
 		$shortcodes->register_shortcodes();
+	}
+
+	private function register_post_types() {
+		$this->loader->add_action('init', $this->maps_post_type, 'register');
+	}
+
+
+	private function get_current_post_type() {
+		if ( isset( $_REQUEST['post_type'] )  ) {
+			return $_REQUEST['post_type'];
+		}
+		elseif (isset( $_REQUEST['screen_id'] ) ) {
+			return $_REQUEST['screen_id'];
+		}
+		elseif (isset( $_POST['screen_id'] ) ) {
+			return $_POST['screen_id'];
+		}
+		else {
+			if ( isset( $_REQUEST['post'])) {
+				$post_type = get_post_type( $_REQUEST['post'] );
+				return $post_type;
+			}
+		}
 	}
 
 
